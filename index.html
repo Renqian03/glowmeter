@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glowmeter — Project 2</title>
+<meta name="description" content="A phone app that sets an ESP32's LED and shows a live reading, over WiFi. Project 2, TIGP Basic Skills for Experimentalists, 2026.">
+<link rel="icon" href="host/pwa/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap">
+<style>
+  :root{
+    --ground:#E4E1D9; --ground-2:#D7D3C8; --ground-3:#C9C4B6;
+    --edge: rgba(0,0,0,.12); --ink:#20211C; --ink-soft:#5C5A4E; --ink-faint:#8B8879;
+    --amber:#B5720A; --amber-deep:#8A5606; --shadow: rgba(20,18,10,.22);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#1B1E20; --ground-2:#232629; --ground-3:#2C3033;
+      --edge: rgba(255,255,255,.09); --ink:#EDEAE3; --ink-soft:#9AA0A6; --ink-faint:#666C70;
+      --amber:#FFB300; --amber-deep:#C98600; --shadow: rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#1B1E20; --ground-2:#232629; --ground-3:#2C3033;
+    --edge: rgba(255,255,255,.09); --ink:#EDEAE3; --ink-soft:#9AA0A6; --ink-faint:#666C70;
+    --amber:#FFB300; --amber-deep:#C98600; --shadow: rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box;}
+  html{background:var(--ground);}
+  body{ margin:0; background:var(--ground); color:var(--ink); font-family:'Barlow', ui-sans-serif, system-ui, sans-serif;
+    padding-inline:20px; padding-block:40px 60px; }
+  .wrap{ max-width:840px; margin:0 auto; display:flex; flex-direction:column; gap:44px; }
+
+  header{ display:flex; align-items:center; gap:14px; }
+  header svg{ width:34px; height:34px; flex:none; }
+  .kicker{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); margin:0 0 4px; }
+  h1{ font-family:'Big Shoulders Display', sans-serif; font-weight:800; font-size:clamp(30px,5.4vw,44px); margin:0; text-transform:uppercase; letter-spacing:.01em; }
+  .byline{ font-size:13px; color:var(--ink-soft); margin-top:2px; }
+
+  .pitch{ font-size:16px; line-height:1.65; max-width:62ch; }
+  .pitch b{ color:var(--amber); font-weight:600; }
+  .cta-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }
+  a.btn{ font-family:'Barlow',sans-serif; font-weight:600; font-size:14px; text-decoration:none; border-radius:4px; padding:12px 20px; display:inline-block; }
+  .btn-primary{ background:var(--amber); color:#20160a; border:1px solid var(--amber-deep); box-shadow:0 3px 0 var(--amber-deep); }
+  .btn-ghost{ background:transparent; color:var(--ink); border:1px solid var(--edge); }
+
+  .shot{ border-radius:6px; overflow:hidden; border:1px solid var(--edge); box-shadow:0 18px 40px -18px var(--shadow); max-width:420px; }
+  .shot img{ display:block; width:100%; height:auto; }
+
+  h2{ font-family:'Big Shoulders Display', sans-serif; font-weight:800; font-size:22px; margin:0 0 4px; text-transform:uppercase; letter-spacing:.01em; }
+  .section-sub{ font-size:13.5px; color:var(--ink-soft); margin:0 0 18px; max-width:60ch; line-height:1.55; }
+
+  table.cmds{ width:100%; border-collapse:collapse; font-family:'IBM Plex Mono',monospace; font-size:12.5px; }
+  table.cmds th{ text-align:left; font-family:'Barlow',sans-serif; font-weight:700; font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-faint); padding:6px 10px; border-bottom:1.5px solid var(--ink); }
+  table.cmds td{ padding:8px 10px; border-bottom:1px solid var(--edge); vertical-align:top; }
+  .table-wrap{ overflow-x:auto; background:var(--ground-2); border:1px solid var(--edge); border-radius:6px; }
+
+  .notes{ display:flex; flex-direction:column; gap:10px; }
+  .note{ display:grid; grid-template-columns:140px 1fr; gap:14px; font-size:13.5px; line-height:1.6; }
+  .note dt{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--amber); }
+  .note dd{ margin:0; }
+  code{ font-family:'IBM Plex Mono',monospace; font-size:12px; background:var(--ground-2); padding:1px 5px; border-radius:3px; }
+
+  footer{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-faint); display:flex; flex-wrap:wrap; gap:6px 16px; justify-content:space-between; border-top:1px solid var(--edge); padding-top:18px; }
+  footer a{ color:var(--ink-faint); }
+  @media (max-width:520px){ .note{ grid-template-columns:1fr; gap:3px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <svg viewBox="0 0 26 26" aria-hidden="true">
+      <circle cx="13" cy="13" r="11" fill="none" stroke="var(--edge)" stroke-width="2"/>
+      <circle cx="13" cy="13" r="6.5" fill="var(--amber)"/>
+    </svg>
+    <div>
+      <p class="kicker">Project 2 &middot; TIGP Basic Skills for Experimentalists, 2026</p>
+      <h1>Glowmeter</h1>
+      <p class="byline">Tee Ren Qian</p>
+    </div>
+  </header>
+
+  <section>
+    <p class="pitch">A phone web app that reaches across the room's WiFi to an ESP32-S3 and back: <b>set the colour and brightness of its onboard LED</b>, then watch <b>a live measurement</b> stream in twenty times a second, drawn as a strip chart. No native app, no cloud service, no server in between — the phone and the board talk directly, in plain JSON over one WebSocket.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="./app/?demo=1">Open Glowmeter →</a>
+      <a class="btn btn-ghost" href="https://github.com/Renqian03/glowmeter">View the code</a>
+    </div>
+  </section>
+
+  <section class="shot">
+    <img src="images/screenshot.png" alt="Glowmeter app: an amber colour picker and brightness slider for the LED, above a live strip chart of the board's temperature reading and a row of telemetry chips." loading="lazy">
+  </section>
+
+  <section>
+    <h2>How it talks to the board</h2>
+    <p class="section-sub">The app never runs its own logic on the board — every value shown is read straight off the 20&nbsp;Hz status broadcast, and every control is a command the board acknowledges or refuses. Full protocol in <a href="https://github.com/Renqian03/glowmeter/blob/main/firmware/PROTOCOL.md" style="color:var(--amber);">firmware/PROTOCOL.md</a>.</p>
+    <div class="table-wrap">
+      <table class="cmds">
+        <thead><tr><th>Direction</th><th>Message</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td>App → board</td><td>{"cmd":"led","args":{"r","g","b"}}</td><td>Sets the RGB LED colour</td></tr>
+          <tr><td>App → board</td><td>{"cmd":"brightness","args":{"value"}}</td><td>Sets brightness, 0–255</td></tr>
+          <tr><td>Board → app</td><td>{"type":"status", …} · 20&times;/s</td><td>Reports the live LED state, temperature, uptime, WiFi signal, free heap, client count</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Notes</h2>
+    <dl class="notes">
+      <div class="note"><dt>Firmware</dt><dd>Unmodified baseline from <code>class-board-2026</code> — the LED and status protocol it already implements is everything this app needed; only the phone app (<code>host/pwa/</code>) is new.</dd></div>
+      <div class="note"><dt>Same origin</dt><dd>The app is built onto the board's own filesystem (LittleFS) and served from it directly over plain HTTP, so it opens on the same local network the board creates — no mixed-content HTTPS/WebSocket conflict.</dd></div>
+      <div class="note"><dt>Try it now</dt><dd>The copy on this page runs the same code with a demo data generator, so the controls and chart are real even before you're on the board's WiFi — open the app and tap "Try demo".</dd></div>
+      <div class="note"><dt>Measurement source</dt><dd>Defaults to the board's onboard temperature sensor, always present; if the ADS8688 input block (b1) is attached, the chart can switch to any of its 8 analog inputs instead.</dd></div>
+    </dl>
+  </section>
+
+  <footer>
+    <span>Built for Workshop 1, Project 2 &mdash; a phone app that controls and measures from your ESP32 over WiFi.</span>
+    <span><a href="https://tigp-experimental-methods.github.io/showcase-2026/">← back to the class showcase</a></span>
+  </footer>
+
+</div>
+</body>
+</html>

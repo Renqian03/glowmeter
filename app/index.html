@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1B1E20">
+<title>Glowmeter</title>
+<meta name="description" content="Set your ESP32's LED and watch a live reading, over WiFi.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 26 26" aria-hidden="true">
+        <circle cx="13" cy="13" r="11" fill="none" stroke="var(--edge)" stroke-width="2"/>
+        <circle id="brand-dot" cx="13" cy="13" r="6.5" fill="var(--amber)"/>
+      </svg>
+      <h1>Glowmeter</h1>
+    </div>
+    <div class="conn"><span class="dot" id="connDot"></span><span id="connText">offline</span></div>
+  </header>
+
+  <section class="panel" id="connectPanel">
+    <p class="label">Connection</p>
+    <div class="connect-row">
+      <input type="text" id="addrInput" placeholder="192.168.4.1 or instrument.local" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button class="btn-amber" id="connectBtn">Connect</button>
+    </div>
+    <p class="hint" id="mixedContentHint" hidden>This page loaded over <b>https</b> — your browser will block a plain <code>ws://</code> connection to a device on your local network from here. Open the app directly from your board instead: <a id="httpLink" href="#">http://…</a></p>
+    <div class="foot-row">
+      <span class="hint" id="statusHint" style="margin:0;">Enter your board's address on the same WiFi network.</span>
+      <button class="btn-ghost" id="demoBtn">Try demo</button>
+    </div>
+  </section>
+
+  <div class="banner" id="demoBanner" hidden>Demo data — not a live board</div>
+
+  <section class="panel" id="ledPanel" hidden>
+    <p class="label">LED</p>
+    <div class="led-row">
+      <div class="swatch" id="swatch"></div>
+      <div class="led-controls">
+        <input type="color" id="colorInput" value="#ffb300">
+        <div class="slider-row">
+          <input type="range" id="brightInput" min="0" max="255" value="120">
+          <span class="slider-val" id="brightVal">120</span>
+        </div>
+        <div class="presets" id="presets"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="readingPanel" hidden>
+    <p class="label">Live reading</p>
+    <div class="reading-head">
+      <div class="readout"><span id="readoutVal">—</span><span class="unit" id="readoutUnit"></span></div>
+      <select id="sourceSelect"></select>
+    </div>
+    <canvas id="chart" width="600" height="110"></canvas>
+    <div class="chart-scale"><span id="scaleMin">–</span><span id="scaleMid">–</span><span id="scaleMax">–</span></div>
+  </section>
+
+  <section class="panel" id="telemetryPanel" hidden>
+    <p class="label">Board</p>
+    <div class="chips">
+      <div class="chip"><b id="tUptime">–</b><span>Uptime</span></div>
+      <div class="chip"><b id="tRssi">–</b><span>RSSI</span></div>
+      <div class="chip"><b id="tHeap">–</b><span>Free heap</span></div>
+      <div class="chip"><b id="tClients">–</b><span>Clients</span></div>
+    </div>
+  </section>
+
+  <footer>Project 2 &middot; TIGP Basic Skills for Experimentalists, 2026 &middot; JSON over WebSocket, one ESP32-S3, no server in between.</footer>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

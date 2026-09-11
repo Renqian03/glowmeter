@@ -1,0 +1,4 @@
+firmware/data/
+firmware/.pio/
+__pycache__/
+*.pyc

@@ -1,0 +1,10 @@
+{
+  "name": "Glowmeter",
+  "short_name": "Glowmeter",
+  "description": "Set your ESP32's LED and watch a live reading, over WiFi.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1B1E20",
+  "theme_color": "#1B1E20",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
